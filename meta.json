@@ -1,0 +1,149 @@
+{
+    "date": {
+        "meta_class": "dimension",
+        "meta_kind": "time",
+        "meta_product": null,
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "cohort": {
+        "meta_class": "dimension",
+        "meta_kind": "time",
+        "meta_product": null,
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "segment": {
+        "meta_class": "dimension",
+        "meta_kind": "discrete",
+        "meta_product": null,
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "months_since_register": {
+        "meta_class": "dimension",
+        "meta_kind": "unit",
+        "meta_product": null,
+        "meta_calculation": true,
+        "meta_active": true
+    },
+    "transacted_amount": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "acquiring",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "acquiring_merchants": {
+        "meta_class": "metric",
+        "meta_kind": "unit",
+        "meta_product": "acquiring",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "account_balance": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "banking",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "account_cashin": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "banking",
+        "meta_calculation": false,
+        "meta_active": false
+    },
+    "account_cashout": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "banking",
+        "meta_calculation": false,
+        "meta_active": false
+    },
+    "banking_merchants": {
+        "meta_class": "metric",
+        "meta_kind": "unit",
+        "meta_product": "banking",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "infinitecard_transacted_amount": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "infinitecard",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "infinitecard_merchants": {
+        "meta_class": "metric",
+        "meta_kind": "unit",
+        "meta_product": "infinitecard",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "smartcash_amount_lent": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "smartcash",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "smartcash_merchants": {
+        "meta_class": "metric",
+        "meta_kind": "unit",
+        "meta_product": "smartcash",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "pix_credit_lent": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "pixcredit",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "pix_credit_merchants": {
+        "meta_class": "metric",
+        "meta_kind": "unit",
+        "meta_product": "pixcredit",
+        "meta_calculation": false,
+        "meta_active": true
+    },
+    "avg_transacted_amount": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "acquiring",
+        "meta_calculation": true,
+        "meta_active": true
+    },
+    "avg_account_balance": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "banking",
+        "meta_calculation": true,
+        "meta_active": true
+    },
+    "avg_infinitecard_transacted_amount": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "infinitecard",
+        "meta_calculation": true,
+        "meta_active": true
+    },
+    "avg_smartcash_amount_lent": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "smartcash",
+        "meta_calculation": true,
+        "meta_active": true
+    },
+    "avg_pix_credit_lent": {
+        "meta_class": "metric",
+        "meta_kind": "money",
+        "meta_product": "pixcredit",
+        "meta_calculation": true,
+        "meta_active": true
+    }
+}
