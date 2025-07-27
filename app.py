@@ -426,7 +426,6 @@ with st.container(border=True):
 
 
 
-toc.generate()
 
 with st.container(border=True):
     toc.header("6. Questions")
@@ -505,3 +504,7 @@ with st.container(border=True):
             CAGED - The information about the amount of hiring/dismissing might be a predictor of whether the merchants are having good amount of sales or not  
             IPCA, INPC, IGP-M - These Economical indexes may work the same way as CAGED data          
         """)
+
+
+
+toc.generate()
