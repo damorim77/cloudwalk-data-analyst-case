@@ -1,11 +1,9 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 import humanize
-import numpy as np
+from io import StringIO
 
 from toc import Toc
 from datalayer import DataLayer
@@ -22,7 +20,6 @@ with st.spinner("Loading data ⏳"):
     df = dl.df
     meta = dl.meta
     dfu = dl.load_unpivoted()
-    dfg = dl.load_with_share()
 
 # st.dataframe(dfg, hide_index=True)
 
@@ -64,8 +61,8 @@ with st.container(border=True):
     - The dataset profile might be described as a cohort-based time series of end-of-month aggregated data per merchant segment.
     - The time series start on jan/24 with the first cohort of registered customers. There are no cohorts older than that. So, older customers are out of scope of this study.
     - Also, given that the first customer cohort is registered by jan/24, and the merchant segmentation rule is based on last 90 day behaviour, it is only possible to measure quantity of inactive customers starting from apr/24.
-    - Merchant's segmentation rule allows merchants to flow through different segments between months according to their product category usage behaviour. So, a single merchant does not necessarily preserves the same segment from the previous month to the next one. But with the given dataset is not possibile to precisely map how many customers migrated from one segment to another between months.
-    - Merchant's segmentation rule is a tree-like segmentation that might shadow the true quantity of active customers on bottom-level product categories. For example, should a merchant use both 'tap to pay' and 'POS' solutions within the 90-day period, the merchant is categorized as 'SMB' although he is also an active user of the 'tap to pay' solution.            
+    - Merchant's segmentation rule allows merchants to flow through different segments between months according to their product usage behaviour. So, a single merchant does not necessarily preserves the same segment from the previous month to the next one. But with the given dataset is not possibile to precisely map how many customers migrated from one segment to another between months.
+    - Merchant's segmentation rule is a tree-like segmentation that might shadow the true quantity of active customers on bottom-level segments. For example, should a merchant use both 'tap to pay' and 'POS' solutions within the 90-day period, the merchant is categorized as 'SMB' although he is also an active user of the 'tap to pay' solution.            
                 """)
 
 
@@ -103,18 +100,18 @@ with st.container(border=True):
         hide_index=True
     )
 
-    toc.subheader("Adding a new calculated column: months_since_register")
-    st.markdown("""
-    - The purpose of this column is to aggregate merchants that are InfinitePay customers for the same amount of time, regardless of the register date
-    - The hypothesis is that merchants that are customers for the same amount of time might be in the same stage of maurity on a customer lifecycle, thus exhibiting similar behaviour patterns
+    # toc.subheader("Adding a new calculated column: months_since_register")
+    # st.markdown("""
+    # - The purpose of this column is to aggregate merchants that are InfinitePay customers for the same amount of time, regardless of the register date
+    # - The hypothesis is that merchants that are customers for the same amount of time might be in the same stage of maurity on a customer lifecycle, thus exhibiting similar behaviour patterns
 
-    Calculation formula: 
-    """)
-    st.code("months_since_register = (date - cohort) // 30", language='excelFormula')            
+    # Calculation formula: 
+    # """)
+    # st.code("months_since_register = (date - cohort) // 30", language='excelFormula')            
 
     df['months_since_register'] = (aux_date_cohort['date'] - aux_date_cohort['cohort']).dt.days // 30
 
-    st.dataframe(df[['date','cohort','months_since_register']].sample(10), hide_index=True)
+    # st.dataframe(df[['date','cohort','months_since_register']].sample(10), hide_index=True)
 
 
 
@@ -243,7 +240,9 @@ with st.container(border=True):
     @st.fragment
     def render_preference_charts(aux):
 
-        segment = st.segmented_control(
+        cols = st.columns([2,2,1])
+
+        segment = cols[0].segmented_control(
             "Segment" , 
             ["ALL", "ALL_ACTIVE", "SMB", "micro", "card_not_present","inactive"] ,
             default="ALL",
@@ -251,10 +250,22 @@ with st.container(border=True):
             key='segment_v2'
         )
 
+        cohort = cols[1].selectbox(
+            "Cohort",
+            ['ALL'] + list(aux['cohort'].unique()) ,
+            index=0
+        )
+
+        dfg = dl.load_with_share(segment, cohort)
+
+        aux = aux[ aux.cohort == cohort]
+
         if segment == 'ALL_ACTIVE':
             aux = aux[ aux.segment != 'inactive' ]
         elif segment != 'ALL':
             aux = aux[ aux.segment == segment ]
+
+
 
         color_scale = px.colors.qualitative.Bold
         
@@ -405,7 +416,7 @@ with st.container(border=True):
 
     *Pix Credit is a rising star and a candidate product to churn prevention*
     - Although the first customers started using Pix Credit by 2024-06, this product only started to really take off by 2024-12. 
-    - Pix Credit has stepped up the rankings for all segments since its launch, also from the cohorts, all Pix Credit metrics point out that this product adoption has grown a lot on all segments since its laucn
+    - All Pix Credit metrics point out that this product adoption has grown a lot on all segments since its laucn
     - However, it seems to have stabilized on the last 3 months. Maybe it's a good time to boost adoption again with Marketing campaigns.
     - This product is particularly popular among inactive customers from all cohorts (along with smartcash). 
     - Such behaviour possibly suggests that although a customer might be considered "inactive", he didn't stray away from the company's reach and still keeps a relatioship with it.
@@ -416,3 +427,81 @@ with st.container(border=True):
 
 
 toc.generate()
+
+with st.container(border=True):
+    toc.header("6. Questions")
+
+    with st.expander("1 - for each acquiring merchant segment, what are the preferred cross-sell products?"):
+
+        st.markdown(""" 
+            Before answering, a few considerations must be taken into account
+
+            First, for the same reasons descibred on the topic 'Preference Analysis', it was assumed the **average ticket is the most appropriate measute of preference**.  
+
+            Second, since the dataset provides a cohort-based time series of customers, we must considerer that preference changes overtime, and accross cohorts of customers.
+            Given that, it is appropriate to focus on a **"recent past"** to draw conclusions for product preference, to capture latest trends.  
+            Here its assumed a "recent past" as the **last 3 months**
+
+            Third, preference on cross-sell products implicitly assumes there is both a main product, and at least a second product
+            Here we assume the main product is the one whose merchant 's segment has the top average ticket spent, and a potential cross-sell, the second one.
+            That way, should a particular merchant have only one of these products, the other one could be offered
+        """)
+        st.markdown("""##### Average ticket per segment and product for the last 3 months""")
+
+        q1 = dl.load_q1()
+        st.dataframe(q1, hide_index=True)
+
+        st.markdown("Given the above data, the preferred cross-sell products are:")
+
+        csv_string = """Segment	Main product	Avg Ticket (3m)	Cross-sell product	Avg Ticket (3m)
+    SMB	acquiring	R$ 9.979,00	smartcash	R$ 8.834,00
+    micro	smartcash	R$ 2.638,00	pix credit	R$ 1.630,00
+    card_not_present	smartcash	R$ 4.011,00	pix credit	R$ 1.119,00
+    inactive	smartcash	R$ 2.197,00	pix credit	R$ 990,00
+        """
+
+        q1 = pd.read_csv(StringIO(csv_string), delimiter="\t")
+
+        st.dataframe(q1, hide_index=True)
+
+    with st.expander("2 - for each product, what is the main segment that uses it?"):
+        
+        st.markdown(f""" 
+            Assuming main segment means "have most costumers", for the last 3 months, it was calculated the average quantity of merchants per segment and product.   
+            From that, for each product it was chosen the segment with most customers, on average.        
+        """)
+        q2 = dl.load_q2()
+        st.dataframe(q2, hide_index=True)
+
+        st.markdown("Given the above data, the main segment that uses each product are:")
+
+        q2 = q2[ q2['rank'] == 1 ].drop(columns=['rank'])
+
+        st.dataframe(q2, hide_index=True)
+
+
+    with st.expander("3 - is there space to increase the cross sell in acquiring merchant base? if so, what products for what segments? is any segment being undertargeted for a relevant product?"):
+
+        st.markdown(""" 
+            Yes, Pix credit is a rising star product. Although this product presented overall growth among most segments since it's launch, on the last 3 months, its seems to have stabilized. Even had a concerning decline on micro segment.   
+            The "Share of product preference over time" chart on the "Preference Analysis" topic shows that for micro segment, the share of this product in Feb/25 was 34%, and now, it's 27%, and for other segments, it shows some stability.   
+            This probably means either that the product reached the "Mature" stage of the product lifecycle, or that it needs some boost to keep growing.   
+            First alternative seems unlikely given that Pix market is still kind of new. So, it leaves the second alternative to be explored.          
+        """)
+
+
+    with st.expander("4 - what questions do you have about the merchants behaviour, the products and the data? what other data and information would you go after? why are they relevant?"):
+        st.markdown(""" 
+            I wonder whether the merchant segmentation rule is really representative of merchants segments.   
+            Since it has a tree-like logic, it shadows the true quantity of active customers on bottom-level segments, should they be classified on top-level ones.  
+            Furthermore, since it allows merchants to move between segments from one period to another, its subject floatations on products usage, and possibily seasonality effects.   
+            A suggestion to improve this rule is to measure how many time a merchant changes between segments during his lifetime as customers and question whether this is a tolerable floatation or not.   
+            Also test the level of homogeneity of customers within each segment, against the heteroscedasticity (measure of how "different") of other segments. It's a statistical method to measure how good a clustering method performed.    
+            Segments should be as homogeneous as possible, and as different from other segments as possible, otherwise it's causes a misclassification of customers that has similar behaviours towards the company.  
+
+            Regarding the data, it would probably be helpful to cross this data against public and private external data like:  
+            Selic Tax - There should be an inverse relationship between this tax, and the willingnes the customer will engage with credit products  
+            Serasa Score - Merchants with lower serasa score may be willing to engage on credit products to work out their bills  
+            CAGED - The information about the amount of hiring/dismissing might be a predictor of whether the merchants are having good amount of sales or not  
+            IPCA, INPC, IGP-M - These Economical indexes may work the same way as CAGED data          
+        """)
